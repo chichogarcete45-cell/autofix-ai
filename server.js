@@ -193,10 +193,20 @@ ESTABLECIMIENTOS REGISTRADOS EN LA BASE DE DATOS (datos actuales):
 ${contextoTalleres(talleres)}`;
 }
 
-// Modelos a probar en orden, por si alguno no está disponible para la clave
+// Modelos a probar en orden: si uno está saturado o no disponible, se usa el siguiente
 function modelosGemini() {
-  return [...new Set([GEMINI_MODEL, 'gemini-flash-latest', 'gemini-2.5-flash'])];
+  return [...new Set([
+    GEMINI_MODEL,
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+  ])];
 }
+
+// Errores temporales o de modelo no disponible: conviene probar otro modelo
+const ERRORES_REINTENTABLES = [404, 429, 500, 503, 504];
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function preguntarGemini(mensaje, historial) {
   if (!GEMINI_API_KEY) throw new ErrorHttp(500, 'Falta la variable GEMINI_API_KEY en el servidor.');
@@ -221,25 +231,43 @@ async function preguntarGemini(mensaje, historial) {
   };
 
   let ultimoError = 'Sin respuesta';
+  const inicio = Date.now();
   for (const modelo of modelosGemini()) {
-    const resp = await fetch(`${GEMINI_BASE}/v1beta/models/${modelo}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-      body: JSON.stringify(cuerpo),
-    });
-    const datos = await resp.json().catch(() => ({}));
-    if (resp.ok) {
-      const partes = datos.candidates?.[0]?.content?.parts || [];
-      const texto = partes.map((p) => p.text || '').join('').trim();
-      if (texto) return { respuesta: texto, modelo };
-      ultimoError = 'Gemini no devolvió texto (posible bloqueo de seguridad).';
-      break;
+    // Hasta 2 intentos por modelo (el segundo tras una breve espera)
+    for (let intento = 1; intento <= 2; intento++) {
+      if (Date.now() - inicio > 40000) break; // límite total de ~40 s
+      let resp, datos;
+      try {
+        resp = await fetch(`${GEMINI_BASE}/v1beta/models/${modelo}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+          body: JSON.stringify(cuerpo),
+          signal: AbortSignal.timeout(25000),
+        });
+        datos = await resp.json().catch(() => ({}));
+      } catch (e) {
+        ultimoError = 'No se pudo conectar con Gemini.';
+        console.warn(`[Gemini ${modelo}] ${e.message}`);
+        continue;
+      }
+      if (resp.ok) {
+        const partes = datos.candidates?.[0]?.content?.parts || [];
+        const texto = partes.map((p) => p.text || '').join('').trim();
+        if (texto) return { respuesta: texto, modelo };
+        ultimoError = 'Gemini no devolvió texto (posible bloqueo de seguridad).';
+        break; // probar con el siguiente modelo
+      }
+      ultimoError = datos.error?.message || `HTTP ${resp.status}`;
+      console.warn(`[Gemini ${modelo}] intento ${intento}: ${resp.status} ${ultimoError}`);
+      // Clave inválida, permisos, etc.: no tiene sentido seguir probando
+      if (!ERRORES_REINTENTABLES.includes(resp.status)) {
+        throw new ErrorHttp(502, `Error de Gemini: ${ultimoError}`);
+      }
+      if (resp.status === 404) break; // el modelo no existe: pasar al siguiente
+      if (intento === 1) await esperar(1200);
     }
-    ultimoError = datos.error?.message || `HTTP ${resp.status}`;
-    // Solo se prueba otro modelo si este no existe; otros errores se informan
-    if (resp.status !== 404) break;
   }
-  throw new ErrorHttp(502, `Error de Gemini: ${ultimoError}`);
+  throw new ErrorHttp(502, `El asistente está muy solicitado en este momento. Intentá de nuevo en unos segundos. (${ultimoError})`);
 }
 
 // ---------- 4. Servidor HTTP y rutas ----------
