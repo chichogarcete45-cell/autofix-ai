@@ -1,0 +1,227 @@
+/* ================= AutoFix AI - Estilos ================= */
+:root {
+  --fondo: #f3f4f6;
+  --tarjeta: #ffffff;
+  --texto: #1f2937;
+  --suave: #6b7280;
+  --borde: #e5e7eb;
+  --oscuro: #111827;
+  --acento: #f97316;
+  --acento-osc: #ea580c;
+  --peligro: #dc2626;
+  --taller: #2563eb;
+  --gomeria: #16a34a;
+  --repuestos: #9333ea;
+  --radio: 12px;
+  --sombra: 0 1px 3px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.05);
+  --alto-top: 64px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--fondo); color: var(--texto); font-size: 15px;
+  display: flex; flex-direction: column;
+}
+button, input, select { font: inherit; color: inherit; }
+.oculto { display: none !important; }
+
+/* ---------- Barra superior ---------- */
+.topbar {
+  height: var(--alto-top); flex-shrink: 0;
+  display: flex; align-items: center; gap: 16px; padding: 0 20px;
+  background: var(--oscuro); color: #fff;
+}
+.marca { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.marca h1 { margin: 0; font-size: 20px; letter-spacing: -.3px; }
+.marca h1 span { color: var(--acento); }
+.marca p { margin: 0; font-size: 12px; color: #9ca3af; }
+
+/* ---------- Botones ---------- */
+.btn {
+  border: 1px solid transparent; border-radius: 9px; padding: 9px 16px;
+  cursor: pointer; font-weight: 600; white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+.btn-chico { padding: 6px 11px; font-size: 13px; }
+.btn-primario { background: var(--acento); color: #fff; }
+.btn-primario:hover { background: var(--acento-osc); }
+.btn-primario:disabled { opacity: .6; cursor: wait; }
+.btn-claro { background: #fff; border-color: var(--borde); color: var(--texto); }
+.btn-claro:hover { border-color: #cbd5e1; background: #f9fafb; }
+.btn-peligro { background: var(--peligro); color: #fff; }
+.btn-icono { background: none; border: 0; font-size: 18px; cursor: pointer; padding: 4px 8px; color: inherit; }
+
+/* ---------- Filtros ---------- */
+.filtros {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px;
+  padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--borde); flex-shrink: 0;
+}
+.filtros input, .filtros select, .modal input, .modal select {
+  width: 100%; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 9px; background: #fff;
+}
+.filtros input:focus, .filtros select:focus, .modal input:focus, .modal select:focus, .chat-form input:focus {
+  outline: 2px solid rgba(249,115,22,.35); border-color: var(--acento);
+}
+
+/* ---------- Contenido: lista + mapa ---------- */
+.contenido {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: minmax(340px, 440px) 1fr;
+}
+.panel-lista { overflow-y: auto; padding: 14px 16px 90px; border-right: 1px solid var(--borde); }
+.panel-mapa { position: relative; min-height: 300px; z-index: 0; /* aísla las capas del mapa */ }
+#mapa { position: absolute; inset: 0; background: #e5e7eb; }
+.aviso-mapa {
+  position: absolute; z-index: 2; inset: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 30px; color: var(--suave); background: #eef0f3; line-height: 1.5;
+}
+.resumen { font-size: 13px; color: var(--suave); margin: 2px 2px 10px; }
+.tabs-movil { display: none; }
+
+/* ---------- Tarjetas ---------- */
+.lista { display: flex; flex-direction: column; gap: 12px; }
+.tarjeta {
+  background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: 14px 16px; border-left: 4px solid var(--taller); scroll-margin: 12px;
+  transition: box-shadow .2s, transform .2s;
+}
+.tarjeta[data-tipo="Gomería"] { border-left-color: var(--gomeria); }
+.tarjeta[data-tipo="Casa de repuestos"] { border-left-color: var(--repuestos); }
+.tarjeta.seleccionada { box-shadow: 0 0 0 2px var(--acento), var(--sombra); }
+.tarjeta h3 { margin: 0 0 2px; font-size: 16px; }
+.tarjeta-cab { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.etiqueta-tipo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--taller); }
+.tarjeta[data-tipo="Gomería"] .etiqueta-tipo { color: var(--gomeria); }
+.tarjeta[data-tipo="Casa de repuestos"] .etiqueta-tipo { color: var(--repuestos); }
+.datos { margin: 8px 0; font-size: 13.5px; color: #374151; display: grid; gap: 3px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+.chip { background: #fff7ed; color: #9a3412; border-radius: 20px; padding: 2px 9px; font-size: 12px; font-weight: 600; }
+.servicios { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+.servicios td { padding: 5px 0; border-top: 1px dashed var(--borde); }
+.servicios td:last-child { text-align: right; font-weight: 600; white-space: nowrap; padding-left: 8px; }
+.servicios .tm { display: block; font-size: 11px; color: var(--suave); }
+.tarjeta-acciones { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.vacio { text-align: center; color: var(--suave); padding: 40px 10px; }
+
+/* ---------- InfoWindow del mapa ---------- */
+.info { max-width: 250px; font-size: 13px; line-height: 1.45; color: #1f2937; }
+.info h4 { margin: 0 0 2px; font-size: 15px; }
+.info .etiqueta-tipo { display: block; margin-bottom: 4px; }
+.info ul { margin: 6px 0 0; padding-left: 16px; }
+.info-gmaps { display: block; width: 100%; height: 150px; border: 0; border-radius: 8px; margin-top: 8px; background: #e5e7eb; }
+.info-enlaces { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.info-enlaces a { color: #ea580c; font-weight: 600; text-decoration: none; }
+.info-enlaces a:hover { text-decoration: underline; }
+.leaflet-popup-content { margin: 12px 14px; }
+.leaflet-container { font: inherit; }
+
+/* ---------- Modales ---------- */
+.modal {
+  border: 0; border-radius: 14px; padding: 0; width: min(680px, 94vw);
+  max-height: 92vh; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal::backdrop { background: rgba(17,24,39,.55); }
+.modal form { display: flex; flex-direction: column; max-height: 92vh; }
+.modal-chico { width: min(420px, 92vw); }
+.modal-cab, .modal-pie { display: flex; align-items: center; gap: 10px; padding: 14px 20px; }
+.modal-cab { justify-content: space-between; border-bottom: 1px solid var(--borde); }
+.modal-cab h2, .modal-chico h2 { margin: 0; font-size: 18px; }
+.modal-pie { justify-content: flex-end; border-top: 1px solid var(--borde); background: #f9fafb; }
+.modal-cuerpo { padding: 16px 20px; overflow-y: auto; }
+.grilla-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grilla-form label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; }
+.grilla-form small { font-weight: 400; color: var(--suave); }
+.col-2 { grid-column: span 2; }
+.acciones-ubicacion { display: flex; gap: 8px; flex-wrap: wrap; }
+.servicios-form { margin-top: 18px; }
+.servicios-cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.servicios-cab h3 { margin: 0; font-size: 15px; }
+.fila-servicio { display: grid; grid-template-columns: 2fr 1.4fr 1fr auto; gap: 6px; margin-bottom: 6px; }
+.error-form { color: var(--peligro); font-size: 13.5px; margin: 12px 0 0; min-height: 1em; }
+
+.banner-ubicacion {
+  position: fixed; z-index: 30; top: calc(var(--alto-top) + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--oscuro); color: #fff; padding: 10px 14px; border-radius: 30px;
+  display: flex; gap: 12px; align-items: center; box-shadow: var(--sombra); font-size: 14px;
+}
+body.eligiendo #mapa { cursor: crosshair; }
+
+/* ---------- Chat ---------- */
+.fab-chat {
+  position: fixed; right: 20px; bottom: 20px; z-index: 20;
+  display: flex; gap: 8px; align-items: center; padding: 13px 20px;
+  border: 0; border-radius: 40px; background: var(--oscuro); color: #fff;
+  font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+.fab-chat:hover { background: #1f2937; }
+.chat {
+  position: fixed; right: 20px; bottom: 20px; z-index: 25;
+  width: 390px; height: min(600px, calc(100vh - 100px));
+  background: #fff; border-radius: 16px; box-shadow: 0 16px 50px rgba(0,0,0,.28);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.chat-cab {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 12px 14px; background: var(--oscuro); color: #fff;
+}
+.chat-cab small { display: block; color: #9ca3af; font-size: 12px; }
+.chat-mensajes { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: #f9fafb; }
+.msg { max-width: 88%; padding: 9px 13px; border-radius: 14px; line-height: 1.45; font-size: 14px; overflow-wrap: anywhere; }
+.msg.usuario { align-self: flex-end; background: var(--acento); color: #fff; border-bottom-right-radius: 4px; }
+.msg.asistente { align-self: flex-start; background: #fff; border: 1px solid var(--borde); border-bottom-left-radius: 4px; }
+.msg.error { align-self: flex-start; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.msg p { margin: 0 0 6px; } .msg p:last-child { margin: 0; }
+.msg ul, .msg ol { margin: 4px 0 6px; padding-left: 18px; }
+.escribiendo span { display: inline-block; width: 7px; height: 7px; margin: 0 2px; border-radius: 50%; background: #9ca3af; animation: salto 1s infinite; }
+.escribiendo span:nth-child(2) { animation-delay: .15s; } .escribiendo span:nth-child(3) { animation-delay: .3s; }
+@keyframes salto { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
+.chat-sugerencias { display: flex; gap: 6px; padding: 8px 12px 0; flex-wrap: wrap; }
+.chat-sugerencias button {
+  border: 1px solid #fed7aa; background: #fff7ed; color: #9a3412; border-radius: 20px;
+  padding: 5px 10px; font-size: 12.5px; cursor: pointer; text-align: left;
+}
+.chat-form { display: flex; gap: 8px; padding: 10px 12px 4px; }
+.chat-form input { flex: 1; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; min-width: 0; }
+.chat-nota { margin: 0; padding: 2px 12px 10px; font-size: 11px; color: var(--suave); }
+
+/* ---------- Aviso flotante ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 140%); z-index: 50;
+  background: var(--oscuro); color: #fff; padding: 11px 18px; border-radius: 10px;
+  box-shadow: var(--sombra); transition: transform .25s, opacity .25s; font-size: 14px; max-width: 90vw;
+  opacity: 0; pointer-events: none;
+}
+.toast.visible { transform: translate(-50%, 0); opacity: 1; }
+.toast.error { background: var(--peligro); }
+
+/* ================= Adaptable a tablets y celulares ================= */
+@media (max-width: 900px) {
+  .filtros { grid-template-columns: 1fr 1fr; }
+  .filtros input { grid-column: span 2; }
+  .contenido { grid-template-columns: 1fr; }
+  .tabs-movil { display: flex; background: #1f2937; border-radius: 10px; padding: 3px; }
+  .tab { border: 0; background: none; color: #d1d5db; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .tab.activo { background: var(--acento); color: #fff; }
+  .contenido[data-vista="lista"] .panel-mapa { display: none; }
+  .contenido[data-vista="mapa"] .panel-lista { display: none; }
+  .panel-lista { border-right: 0; }
+}
+@media (max-width: 600px) {
+  .topbar { padding: 0 12px; gap: 8px; }
+  .marca p, .ocultar-xs { display: none; }
+  .marca h1 { font-size: 18px; }
+  .filtros { padding: 10px 12px; gap: 8px; }
+  .panel-lista { padding: 12px 10px 90px; }
+  .grilla-form { grid-template-columns: 1fr; }
+  .col-2 { grid-column: span 1; }
+  .fila-servicio { grid-template-columns: 1fr 1fr; }
+  .fila-servicio input:first-child { grid-column: span 2; }
+  .modal { width: 100vw; max-width: 100vw; max-height: 100vh; height: 100%; border-radius: 0; margin: 0; }
+  .modal form { max-height: 100vh; height: 100%; }
+  .modal-cuerpo { flex: 1; }
+  .modal-chico { height: auto; margin: auto; border-radius: 14px; width: 92vw; }
+  .chat { inset: 0; width: 100%; height: 100%; border-radius: 0; }
+  .fab-chat { right: 14px; bottom: 14px; padding: 14px 16px; font-size: 18px; }
+}

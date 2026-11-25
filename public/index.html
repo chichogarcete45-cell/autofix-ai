@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoFix AI · Talleres, gomerías y repuestos</title>
+  <meta name="description" content="Encontrá talleres mecánicos, gomerías y casas de repuestos, con mapa y asistente inteligente." />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="marca">
+      <img src="icon.svg" alt="" width="34" height="34" />
+      <div>
+        <h1>AutoFix <span>AI</span></h1>
+        <p>Talleres · Gomerías · Repuestos</p>
+      </div>
+    </div>
+    <nav class="tabs-movil" aria-label="Secciones">
+      <button class="tab activo" data-vista="lista">Catálogo</button>
+      <button class="tab" data-vista="mapa">Mapa</button>
+    </nav>
+    <button class="btn btn-primario" id="btnNuevo">＋ <span class="ocultar-xs">Nuevo establecimiento</span></button>
+  </header>
+
+  <section class="filtros" aria-label="Búsqueda y filtros">
+    <input type="search" id="buscar" placeholder="Buscar por nombre, servicio, dirección…" aria-label="Buscar" />
+    <select id="filtroTipo" aria-label="Tipo de establecimiento">
+      <option value="">Todos los tipos</option>
+      <option>Taller mecánico</option>
+      <option>Gomería</option>
+      <option>Casa de repuestos</option>
+    </select>
+    <select id="filtroEspecialidad" aria-label="Especialidad">
+      <option value="">Todas las especialidades</option>
+    </select>
+    <select id="filtroMantenimiento" aria-label="Tipo de mantenimiento">
+      <option value="">Todo tipo de mantenimiento</option>
+    </select>
+    <button class="btn btn-claro" id="btnLimpiar" type="button">Limpiar</button>
+  </section>
+
+  <main class="contenido" data-vista="lista">
+    <section class="panel-lista" aria-label="Catálogo">
+      <div class="resumen" id="resumen">Cargando establecimientos…</div>
+      <div class="lista" id="lista"></div>
+    </section>
+    <section class="panel-mapa" aria-label="Mapa">
+      <div id="avisoMapa" class="aviso-mapa oculto"></div>
+      <div id="mapa"></div>
+    </section>
+  </main>
+
+  <!-- Banner para elegir ubicación en el mapa -->
+  <div class="banner-ubicacion oculto" id="bannerUbicacion">
+    📍 Hacé clic en el mapa para marcar la ubicación
+    <button class="btn btn-claro btn-chico" id="btnCancelarUbicacion">Cancelar</button>
+  </div>
+
+  <!-- Formulario de alta / modificación -->
+  <dialog id="modal" class="modal">
+    <form id="formTaller" novalidate>
+      <div class="modal-cab">
+        <h2 id="tituloModal">Nuevo establecimiento</h2>
+        <button type="button" class="btn-icono" id="btnCerrarModal" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-cuerpo">
+        <div class="grilla-form">
+          <label class="col-2">Nombre *
+            <input name="nombre" required maxlength="120" />
+          </label>
+          <label>Tipo *
+            <select name="tipo" required>
+              <option>Taller mecánico</option>
+              <option>Gomería</option>
+              <option>Casa de repuestos</option>
+            </select>
+          </label>
+          <label>Teléfono
+            <input name="telefono" maxlength="40" />
+          </label>
+          <label class="col-2">Especialidades <small>(separadas por coma)</small>
+            <input name="especialidades" placeholder="Ej.: Alineación, Balanceo, Frenos" />
+          </label>
+          <label class="col-2">Dirección *
+            <input name="direccion" required maxlength="200" />
+          </label>
+          <label>Email
+            <input name="email" type="email" maxlength="120" />
+          </label>
+          <label>Horario
+            <input name="horario" placeholder="Lun a Vie 08:00-18:00" maxlength="120" />
+          </label>
+          <label>Latitud *
+            <input name="latitud" type="number" step="any" required placeholder="-25.2867" />
+          </label>
+          <label>Longitud *
+            <input name="longitud" type="number" step="any" required placeholder="-57.6470" />
+          </label>
+          <div class="col-2 acciones-ubicacion">
+            <button type="button" class="btn btn-claro btn-chico" id="btnElegirMapa">📍 Elegir en el mapa</button>
+            <button type="button" class="btn btn-claro btn-chico" id="btnMiUbicacion">🎯 Usar mi ubicación</button>
+          </div>
+        </div>
+
+        <div class="servicios-form">
+          <div class="servicios-cab">
+            <h3>Servicios y precios estimados</h3>
+            <button type="button" class="btn btn-claro btn-chico" id="btnAgregarServicio">＋ Agregar servicio</button>
+          </div>
+          <datalist id="tiposMantenimiento">
+            <option value="Preventivo"></option>
+            <option value="Correctivo"></option>
+            <option value="Diagnóstico"></option>
+            <option value="Alineación y balanceo"></option>
+            <option value="Neumáticos"></option>
+            <option value="Frenos"></option>
+            <option value="Suspensión"></option>
+            <option value="Eléctrico"></option>
+            <option value="Climatización"></option>
+            <option value="Repuestos"></option>
+          </datalist>
+          <div id="filasServicios"></div>
+        </div>
+        <p class="error-form" id="errorForm" role="alert"></p>
+      </div>
+      <div class="modal-pie">
+        <button type="button" class="btn btn-claro" id="btnCancelar">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmación de baja -->
+  <dialog id="modalBorrar" class="modal modal-chico">
+    <div class="modal-cuerpo">
+      <h2>¿Eliminar establecimiento?</h2>
+      <p>Se eliminará <strong id="nombreBorrar"></strong> y todos sus servicios. Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-pie">
+      <button class="btn btn-claro" id="btnNoBorrar">Cancelar</button>
+      <button class="btn btn-peligro" id="btnSiBorrar">Eliminar</button>
+    </div>
+  </dialog>
+
+  <!-- Asistente inteligente -->
+  <button class="fab-chat" id="fabChat" aria-label="Abrir asistente">
+    <span>💬</span><span class="ocultar-xs">Asistente AutoFix</span>
+  </button>
+  <aside class="chat oculto" id="chat" aria-label="Asistente inteligente">
+    <div class="chat-cab">
+      <div>
+        <strong>Asistente AutoFix AI</strong>
+        <small>Con Gemini · consulta los talleres registrados</small>
+      </div>
+      <button class="btn-icono" id="btnCerrarChat" aria-label="Cerrar asistente">✕</button>
+    </div>
+    <div class="chat-mensajes" id="chatMensajes">
+      <div class="msg asistente">¡Hola! Soy el asistente de AutoFix AI 🚗. Puedo orientarte sobre mantenimiento preventivo y decirte qué establecimientos registrados ofrecen cada servicio.</div>
+    </div>
+    <div class="chat-sugerencias" id="chatSugerencias">
+      <button>¿Cuándo debo cambiar el aceite?</button>
+      <button>¿Qué talleres registrados realizan alineación?</button>
+      <button>¿Cómo revisar el estado de los neumáticos?</button>
+    </div>
+    <form class="chat-form" id="chatForm">
+      <input id="chatInput" placeholder="Escribí tu pregunta…" autocomplete="off" maxlength="2000" aria-label="Pregunta" />
+      <button class="btn btn-primario" type="submit" id="chatEnviar" aria-label="Enviar">➤</button>
+    </form>
+    <p class="chat-nota">Orientación general. Para reparaciones de riesgo consultá siempre a un profesional.</p>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
